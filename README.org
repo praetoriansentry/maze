@@ -1,0 +1,6 @@
+
+#+begin_src bash
+npm install @openzeppelin/contracts
+npm install --save-dev truffle
+npx truffle init
+#+end_src
