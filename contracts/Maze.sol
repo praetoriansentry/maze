@@ -60,10 +60,13 @@ contract Maze is ERC721PresetMinterPauserAutoId {
                     continue;
                 }
 
-                row = (i + 1) / 2;
+                row = (i - 1) / 2;
                 col = (j - 1) / 4;
                 cellIndex = rowColToBitIndex(row, col);
-                if (cellIndex < FIELD_SIZE) {
+
+                if (i == 0 ) {
+                    cell = 31;
+                } else if (cellIndex < FIELD_SIZE && cellIndex >= 0) {
                     cell = bitfield[cellIndex];
                 } else {
                     cell  = 31;
@@ -76,12 +79,22 @@ contract Maze is ERC721PresetMinterPauserAutoId {
                     mazeOutput[idx++] = CHAR_SPACE;
                     mazeOutput[idx++] = CHAR_SPACE;
                     mazeOutput[idx++] = CHAR_SPACE;
-                    mazeOutput[idx++] = CHAR_PIPE;
+                    if ((cell & EAST_WALL) == EAST_WALL) {
+                        mazeOutput[idx++] = CHAR_PIPE;
+                    } else {
+                        mazeOutput[idx++] = CHAR_SPACE;
+                    }
                     j = j + 4;
                 } else {// NORTH SOUTH
-                    mazeOutput[idx++] = CHAR_DASH;
-                    mazeOutput[idx++] = CHAR_DASH;
-                    mazeOutput[idx++] = CHAR_DASH;
+                    if ((cell & SOUTH_WALL) == SOUTH_WALL) {
+                        mazeOutput[idx++] = CHAR_DASH;
+                        mazeOutput[idx++] = CHAR_DASH;
+                        mazeOutput[idx++] = CHAR_DASH;
+                    } else {
+                        mazeOutput[idx++] = CHAR_SPACE;
+                        mazeOutput[idx++] = CHAR_SPACE;
+                        mazeOutput[idx++] = CHAR_SPACE;
+                    }
                     mazeOutput[idx++] = CHAR_PLUS;
                     j = j + 4;
                 }
