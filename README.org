@@ -1,6 +1,17 @@
+https://docs.openzeppelin.com/learn/setting-up-a-node-project
 
 #+begin_src bash
 npm install @openzeppelin/contracts
 npm install --save-dev truffle
 npx truffle init
+
+npm install --save-dev ganache-cli
+
+npx ganache-cli --deterministic
+
+npx truffle compile
+npx truffle migrate --network development
+npx truffle console --network development
+
+m = await Maze.deployed()
 #+end_src
