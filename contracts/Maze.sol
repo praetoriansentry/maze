@@ -60,21 +60,21 @@ contract Maze is ERC721PresetMinterPauserAutoId {
                     continue;
                 }
 
-                row = (i - 1) / 2;
-                col = (j - 1) / 4;
-                cellIndex = rowColToBitIndex(row, col);
 
-                if (i == 0 ) {
+                if (i == 0) {
                     cell = 31;
-                } else if (cellIndex < FIELD_SIZE && cellIndex >= 0) {
-                    cell = bitfield[cellIndex];
                 } else {
-                    cell  = 31;
+                    row = (i - 1) / 2;
+                    col = j / 4;
+                    cellIndex = rowColToBitIndex(row, col);
+                    if (cellIndex < FIELD_SIZE && cellIndex >= 0) {
+                        cell = bitfield[cellIndex];
+                    } else {
+                        cell = 31;
+                    }
                 }
 
-
                 // What cell are we in?
-
                 if (i % 2 == 1) {// EAST WEST
                     mazeOutput[idx++] = CHAR_SPACE;
                     mazeOutput[idx++] = CHAR_SPACE;
@@ -105,22 +105,30 @@ contract Maze is ERC721PresetMinterPauserAutoId {
         return finalMaze;
     }
 
-
-
-
-
     function getMazeData(uint id) public pure returns (uint[FIELD_SIZE] memory) {
         uint[FIELD_SIZE] memory bitfield;
         uint cell;
         bytes32 randState = randData(keccak256(abi.encode(id)));
+        bool goSouth;
         // Initialize a bit field
         for (uint i = 0; i < FIELD_SIZE; i = i + 1) {
             cell = 31;
             randState = randData(randState);
-            if (uint(randState) % 2 == 0) {
-                cell = cell & ~SOUTH_WALL;
+            goSouth = (uint(randState) % 2 == 0);
+            uint[2] memory rowCol = bitIndexToRowCol(i);
+            if (goSouth) {
+                if (rowCol[0] < (MAZE_SIZE - 1)) {
+                    cell = cell & ~SOUTH_WALL;
+                } else if (rowCol[1] < (MAZE_SIZE -1)) {
+                    cell = cell & ~EAST_WALL;
+                }
             } else {
-                cell = cell & ~EAST_WALL;
+                if (rowCol[1] < (MAZE_SIZE - 1)) {
+                    cell = cell & ~EAST_WALL;
+                } else {
+                    cell = cell & ~SOUTH_WALL;
+
+                }
             }
             bitfield[i] = cell;
         }
