@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC721/presets/ERC721PresetMinterPauserAutoId.sol";
 
 contract Maze is ERC721PresetMinterPauserAutoId {
-    uint public constant MAZE_SIZE = 15;
+    uint public constant MAZE_SIZE = 20;
     uint constant FIELD_SIZE = MAZE_SIZE * MAZE_SIZE;
 
     uint constant PRINTED_MAZE_COLS = (MAZE_SIZE * 4 + 2);
@@ -23,12 +23,10 @@ contract Maze is ERC721PresetMinterPauserAutoId {
     bytes1 constant CHAR_PIPE = 0x7C;
     bytes1 constant CHAR_SPACE = 0x20;
 
-
-
-
     constructor() ERC721PresetMinterPauserAutoId("Maze", "MZE", "https://maze.j4.is/token/") {
     }
 
+    // Take a token id and draw the maze that's unique to that token.
     function draw(uint id) public pure returns (string memory) {
         uint[FIELD_SIZE] memory bitfield = getMazeData(id);
         uint cell;
@@ -105,6 +103,8 @@ contract Maze is ERC721PresetMinterPauserAutoId {
         return finalMaze;
     }
 
+    // Implementing the fastest and most trivial algorithm I could find.
+    // https://weblog.jamisbuck.org/2011/2/1/maze-generation-binary-tree-algorithm
     function getMazeData(uint id) public pure returns (uint[FIELD_SIZE] memory) {
         uint[FIELD_SIZE] memory bitfield;
         uint cell;
@@ -114,6 +114,7 @@ contract Maze is ERC721PresetMinterPauserAutoId {
         for (uint i = 0; i < FIELD_SIZE; i = i + 1) {
             cell = 31;
             randState = randData(randState);
+            // coin filt to decide if I should go south or east
             goSouth = (uint(randState) % 2 == 0);
             uint[2] memory rowCol = bitIndexToRowCol(i);
             if (goSouth) {
@@ -125,9 +126,8 @@ contract Maze is ERC721PresetMinterPauserAutoId {
             } else {
                 if (rowCol[1] < (MAZE_SIZE - 1)) {
                     cell = cell & ~EAST_WALL;
-                } else {
+                } else if (rowCol[0] < (MAZE_SIZE) - 1){
                     cell = cell & ~SOUTH_WALL;
-
                 }
             }
             bitfield[i] = cell;
@@ -136,16 +136,19 @@ contract Maze is ERC721PresetMinterPauserAutoId {
 
     }
 
+    // take an index that stored the flat array and return an array corresponding to the row and column in question
     function bitIndexToRowCol(uint idx) private pure returns (uint[2] memory) {
         uint row = idx / MAZE_SIZE;
         uint col = idx % MAZE_SIZE;
         return [row, col];
     }
 
+    // Given a row and column, at the index in the flat array.
     function rowColToBitIndex(uint row, uint col) private pure returns(uint) {
         return row * MAZE_SIZE + col;
     }
 
+    // function that would be used to generate random data in a chain
     function randData(bytes32 randState) public pure returns (bytes32) {
         bytes32 idHash = keccak256(abi.encode(randState));
         return idHash;
