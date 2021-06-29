@@ -2,11 +2,24 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC721/presets/ERC721PresetMinterPauserAutoId.sol";
 
-contract Maze is ERC721PresetMinterPauserAutoId {
+
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
+
+contract Maze is ERC721, ERC721Enumerable, Ownable {
+    using Counters for Counters.Counter;
+
+    Counters.Counter private _tokenIdCounter;
+
+
     uint public constant MAZE_SIZE = 20;
+    uint public constant MAX_TOKEN_COUNT = 256;
     uint constant FIELD_SIZE = MAZE_SIZE * MAZE_SIZE;
+    uint256 constant TOKEN_COST = 25000000000000000; 
+    address constant EFF_ADDRESS = 0x095f1fD53A56C01c76A2a56B7273995Ce915d8C4;
 
     uint constant PRINTED_MAZE_COLS = (MAZE_SIZE * 4 + 2);
     uint constant PRINTED_MAZE_ROWS = (2 * MAZE_SIZE + 1);
@@ -23,8 +36,39 @@ contract Maze is ERC721PresetMinterPauserAutoId {
     bytes1 constant CHAR_PIPE = 0x7C;
     bytes1 constant CHAR_SPACE = 0x20;
 
-    constructor() ERC721PresetMinterPauserAutoId("Maze", "MZE", "https://maze.j4.is/token/") {
+    constructor() ERC721("Maze", "MZE") {}
+
+    function safeMint(address to) public onlyOwner payable {
+        require(this.totalSupply() <= MAX_TOKEN_COUNT, "The supply of mazes has been exhausted.");
+        require(address(msg.sender).balance > TOKEN_COST, "Not enough ETH!");
+        require(msg.value >= TOKEN_COST, "Value below price");
+        address payable p = payable(EFF_ADDRESS);
+
+        p.transfer(TOKEN_COST);
+        _safeMint(to, _tokenIdCounter.current());
+        _tokenIdCounter.increment();
     }
+
+    function _baseURI() internal pure override returns (string memory) {
+        return "https://blockmazing.com/token/";
+    }
+
+    function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal override(ERC721, ERC721Enumerable) {
+        super._beforeTokenTransfer(from, to, tokenId);
+    }
+
+    function supportsInterface(bytes4 interfaceId) public view override(ERC721, ERC721Enumerable) returns (bool) {
+        return super.supportsInterface(interfaceId);
+    }
+
+/*
+    function mint(address to) public virtual {
+        require(this.totalSupply() <= MAX_TOKEN_COUNT, "The supply of mazes has been exhausted.");
+        require(address(msg.sender).balance > TOKEN_COST, "Not enough ETH!");
+        payable(EFF_ADDRESS).transfer(TOKEN_COST);
+        super.mint(to);
+    }
+*/
 
     // Take a token id and draw the maze that's unique to that token.
     function draw(uint id) public pure returns (string memory) {
