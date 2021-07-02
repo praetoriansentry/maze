@@ -3,7 +3,10 @@
     "@openzeppelin/contracts": "^4.1.0"
   },
   "devDependencies": {
+    "@truffle/hdwallet-provider": "^1.4.1",
     "ganache-cli": "^6.12.2",
-    "truffle": "^5.3.12"
+    "truffle": "^5.3.12",
+    "truffle-flattener": "^1.5.0",
+    "truffle-plugin-verify": "^0.5.10"
   }
 }

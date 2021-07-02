@@ -17,8 +17,16 @@ m = await Maze.deployed()
 await web3.eth.getAccounts()
 web3.eth.defaultAccount = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
 m.safeMint("0x3E5e9111Ae8eB78Fe1CC3bb8915d5D461F3Ef9A9", {value: "25000000000000000"})
+
+
 #+end_src
 
+https://github.com/rkalis/truffle-plugin-verify
+
+#+BEGIN_SRC bash
+truffle run verify Maze --network rinkeby
+truffle run verify Maze --network mainnet
+#+END_SRC
 
 
 #+BEGIN_SRC bash

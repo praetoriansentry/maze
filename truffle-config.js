@@ -24,6 +24,9 @@
 // const fs = require('fs');
 // const mnemonic = fs.readFileSync(".secret").toString().trim();
 
+const { alchemyApiKey, mnemonic, etherscanApiKey, alchemyApiKeyPrd } = require('./secrets.json');
+const HDWalletProvider = require('@truffle/hdwallet-provider');
+
 module.exports = {
   /**
    * Networks define how you connect to your ethereum client and let you set the
@@ -46,6 +49,18 @@ module.exports = {
      host: "127.0.0.1",     // Localhost (default: none)
      port: 8545,            // Standard Ethereum port (default: none)
      network_id: "*",       // Any network (default: none)
+    },
+
+    rinkeby: {
+      provider: () => new HDWalletProvider({mnemonic: mnemonic, providerOrUrl: `https://eth-rinkeby.alchemyapi.io/v2/${alchemyApiKey}`, addressIndex: 2}),
+      network_id: 4,
+      gasPrice: 10e9,
+      skipDryRun: true,
+    },
+    mainnet: {
+      provider: () => new HDWalletProvider({mnemonic: mnemonic, providerOrUrl: `https://eth-mainnet.alchemyapi.io/v2/${alchemyApiKeyPrd}`, addressIndex: 0}),
+      network_id: 1,
+      skipDryRun: true,
     },
     // Another network with more advanced options...
     // advanced: {
@@ -102,5 +117,11 @@ module.exports = {
 
   db: {
     enabled: false
+  },
+  plugins: [
+    'truffle-plugin-verify'
+  ],
+  api_keys: {
+    etherscan: etherscanApiKey
   }
 };
