@@ -105,12 +105,12 @@ contract Maze is ERC721, ERC721Enumerable, Ownable {
         return "https://blockmazing.com/m/";
     }
 
-    function tokenURI(uint tokenId) public view override(ERC721) returns (string memory) {
+    function tokenDataURI(uint tokenId) public view returns (string memory) {
         require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
         return string(abi.encodePacked("data:text/plain;charset=UTF-8,", draw(tokenId)));
     }
 
-    function tokenMetaURI(uint tokenId) public view returns (string memory) {
+    function tokenURI(uint tokenId) public view override(ERC721) returns (string memory) {
         require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
         string memory tokenIdString =  Strings.toString(tokenId);
         return string(abi.encodePacked(_baseURI(), tokenIdString, "/" , Strings.toString(tokenId), ".json"));

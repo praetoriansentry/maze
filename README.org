@@ -24,7 +24,7 @@ m.safeMint("0x3E5e9111Ae8eB78Fe1CC3bb8915d5D461F3Ef9A9", {value: "25000000000000
 https://github.com/rkalis/truffle-plugin-verify
 
 #+BEGIN_SRC bash
-truffle run verify Maze --network rinkeby
+npx truffle run verify Maze --network rinkeby
 truffle run verify Maze --network mainnet
 #+END_SRC
 
@@ -64,3 +64,8 @@ while read -u 3 line; do
     popd
 done 3<<< $(find out -mindepth 1 -maxdepth 1 -type d)
 #+END_SRC
+
+
+Test: https://rinkeby.etherscan.io/address/0x3c5Cc823f2F128C4EC58d233c008023CAceebF7a
+Main: https://etherscan.io/address/0xaf5385a615ffd60a8191bfd9aec441e442fcd3cf
+
