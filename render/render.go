@@ -166,7 +166,7 @@ func draw(id int) string {
 
 	mzData.Name = fmt.Sprintf("BlockMazing #%03d", id)
 	mzData.Description = fmt.Sprintf("BlockMazing #%03d", id)
-	mzData.Image = fmt.Sprintf("ipfs://asdfadfadfadfadfad/%d", id)
+	mzData.Image = fmt.Sprintf("https://blockmazing.com/m/%d/maze.png", id)
 	mzData.MazeString = mazeString
 	mzData.MazeSHA = mazeSha
 	attrs = append(attrs, Prop{TraitType: "South turns", Value: fmt.Sprintf("%d", south)})
