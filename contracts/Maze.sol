@@ -152,14 +152,14 @@ contract Maze is ERC721, ERC721Enumerable, Ownable {
     function getMazeData(uint id) public pure returns (uint[FIELD_SIZE] memory) {
         uint[FIELD_SIZE] memory bitfield;
         uint cell;
-        bytes32 randState = randData(keccak256(abi.encode(id)));
+        uint randInt = semiRandomData(id);
         bool goSouth;
         // Initialize a bit field
         for (uint i = 0; i < FIELD_SIZE; i = i + 1) {
             cell = 31;
-            randState = randData(randState);
+            randInt = semiRandomData(randInt);
             // coin filt to decide if I should go south or east
-            goSouth = (uint(randState) % 2 == 0);
+            goSouth = (randInt % 1000) >= 500;
             uint[2] memory rowCol = bitIndexToRowCol(i);
             if (goSouth) {
                 if (rowCol[0] < (MAZE_SIZE - 1)) {
@@ -192,9 +192,7 @@ contract Maze is ERC721, ERC721Enumerable, Ownable {
         return row * MAZE_SIZE + col;
     }
 
-    // function that would be used to generate random data in a chain
-    function randData(bytes32 randState) public pure returns (bytes32) {
-        bytes32 idHash = keccak256(abi.encode(randState));
-        return idHash;
+    function semiRandomData(uint seed) public pure returns (uint) {
+        return ((seed * 1103515245) + 12345) % 2147483648;
     }
 }
