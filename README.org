@@ -14,4 +14,45 @@ npx truffle migrate --network development
 npx truffle console --network development
 
 m = await Maze.deployed()
+await web3.eth.getAccounts()
+web3.eth.defaultAccount = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
+m.safeMint("0x3E5e9111Ae8eB78Fe1CC3bb8915d5D461F3Ef9A9", {value: "25000000000000000"})
 #+end_src
+
+
+
+#+BEGIN_SRC bash
+# Create the full tree
+go run render.go
+
+# Create every frame
+find out -type f -name '*.txt' | awk '{print "convert -size 596x620 xc:black -font \"DejaVu-Sans-Mono\" -pointsize 12 -fill green -annotate +15+15 \"@" $1 "\" " $1 ".png"'} | parallel
+
+# create transparent images
+find out -type f -name '*-final.txt' | awk '{print "convert -size 596x620 xc:black -font \"DejaVu-Sans-Mono\" -pointsize 12 -fill transparent -annotate +15+15 \"@" $1 "\" " $1 "-alpha.png"'} | parallel
+
+# render gifs
+find out -mindepth 1 -type d | awk '{print "convert -delay 5 -loop 0 " $1 "/*.txt.png " $1 "/animated.gif"}' | parallel
+
+# crop the masks
+find out -mindepth 1 -type d | awk '{print "convert " $1 "/mask.jpg -gravity center -crop 596x620  " $1 "/mask-crop.jpg"'} | parallel
+
+# final cleanup
+while read -u 3 line; do
+    pushd $line
+    convert mask-crop-0.jpg *-final.txt-alpha.png -gravity center -size 596x620 -compose over -composite maze-color.png
+    mkdir final
+    mv maze-color.png final/maze-color.png
+    mv animated.gif final/maze.gif
+    mv *.json final/
+    mv *.sha1 final/maze.sha1
+    cp *-final.txt.png final/
+    mv *-final.txt.png final/maze.png
+    mv *-final.txt final/maze.txt
+
+    find . -maxdepth 1 -type f | xargs rm
+    mv final/* .
+    rm -rf final/
+    popd
+done 3<<< $(find out -mindepth 1 -maxdepth 1 -type d)
+#+END_SRC
