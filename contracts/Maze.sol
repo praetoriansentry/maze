@@ -8,6 +8,8 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
+
 
 contract Maze is ERC721, ERC721Enumerable, Ownable {
     using Counters for Counters.Counter;
@@ -39,7 +41,7 @@ contract Maze is ERC721, ERC721Enumerable, Ownable {
     constructor() ERC721("Maze", "MZE") {}
 
     function safeMint(address to) public onlyOwner payable {
-        require(this.totalSupply() <= MAX_TOKEN_COUNT, "The supply of mazes has been exhausted.");
+        require(this.totalSupply() < MAX_TOKEN_COUNT, "The supply of mazes has been exhausted.");
         require(address(msg.sender).balance > TOKEN_COST, "Not enough ETH!");
         require(msg.value >= TOKEN_COST, "Value below price");
         address payable p = payable(EFF_ADDRESS);
@@ -50,7 +52,18 @@ contract Maze is ERC721, ERC721Enumerable, Ownable {
     }
 
     function _baseURI() internal pure override returns (string memory) {
-        return "https://blockmazing.com/token/";
+        return "https://blockmazing.com/m/";
+    }
+
+    function tokenURI(uint tokenId) public view override(ERC721) returns (string memory) {
+        require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
+        return string(abi.encodePacked("data:text/plain;charset=UTF-8,", draw(tokenId)));
+    }
+
+    function tokenMetaURI(uint tokenId) public view returns (string memory) {
+        require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
+        string memory tokenIdString =  Strings.toString(tokenId);
+        return string(abi.encodePacked(_baseURI(), tokenIdString, "/" , Strings.toString(tokenId), ".json"));
     }
 
     function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal override(ERC721, ERC721Enumerable) {
@@ -60,15 +73,6 @@ contract Maze is ERC721, ERC721Enumerable, Ownable {
     function supportsInterface(bytes4 interfaceId) public view override(ERC721, ERC721Enumerable) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
-
-/*
-    function mint(address to) public virtual {
-        require(this.totalSupply() <= MAX_TOKEN_COUNT, "The supply of mazes has been exhausted.");
-        require(address(msg.sender).balance > TOKEN_COST, "Not enough ETH!");
-        payable(EFF_ADDRESS).transfer(TOKEN_COST);
-        super.mint(to);
-    }
-*/
 
     // Take a token id and draw the maze that's unique to that token.
     function draw(uint id) public pure returns (string memory) {
