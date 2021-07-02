@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/sha1"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -28,6 +29,22 @@ const (
 	CHAR_NEWLINE = 0x0A
 	CHAR_PIPE    = 0x7C
 	CHAR_SPACE   = 0x20
+)
+
+type (
+	Prop struct {
+		TraitType string `json:"trait_type"`
+		Value     string `json:"value"`
+	}
+
+	ERC721 struct {
+		Name        string `json:"name"`
+		Description string `json:"description"`
+		Image       string `json:"image"`
+		MazeString  string `json:"maze_string"`
+		MazeSHA     string `json:"maze_sha"`
+		Attributes  []Prop `json:"attributes"`
+	}
 )
 
 func main() {
@@ -121,10 +138,46 @@ func render(bitfield [FIELD_SIZE]int) string {
 
 // Take a token id and draw the maze that's unique to that token.
 func draw(id int) string {
-	os.Mkdir(fmt.Sprintf("out/%03d/", id), os.ModePerm)
-	copy(fmt.Sprintf("masks/%d.jpg", id), fmt.Sprintf("out/%03d/mask.jpg", id))
+	os.Mkdir(fmt.Sprintf("out/%d/", id), os.ModePerm)
+	copy(fmt.Sprintf("masks/%d.jpg", id%30), fmt.Sprintf("out/%d/mask.jpg", id))
 	var bitfield [FIELD_SIZE]int = getMazeData(id)
-	return render(bitfield)
+	mazeString := render(bitfield)
+	mazeSha := fmt.Sprintf("%x\n", sha1.Sum([]byte(mazeString)))
+
+	err := ioutil.WriteFile(fmt.Sprintf("out/%d/%d-final.txt.sha1", id, id), []byte(mazeSha), os.ModePerm)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	south := 0
+	east := 0
+
+	for _, v := range bitfield {
+		if (v & EAST_WALL) != EAST_WALL {
+			east += 1
+		}
+		if (v & SOUTH_WALL) != SOUTH_WALL {
+			south += 1
+		}
+	}
+
+	mzData := new(ERC721)
+	attrs := make([]Prop, 0)
+
+	mzData.Name = fmt.Sprintf("BlockMazing #%03d", id)
+	mzData.Description = fmt.Sprintf("BlockMazing #%03d", id)
+	mzData.Image = fmt.Sprintf("ipfs://asdfadfadfadfadfad/%d", id)
+	mzData.MazeString = mazeString
+	mzData.MazeSHA = mazeSha
+	attrs = append(attrs, Prop{TraitType: "South turns", Value: fmt.Sprintf("%d", south)})
+	attrs = append(attrs, Prop{TraitType: "East turns", Value: fmt.Sprintf("%d", east)})
+	mzData.Attributes = attrs
+	mzJson, err := json.Marshal(mzData)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	ioutil.WriteFile(fmt.Sprintf("out/%d/%d.json", id, id), mzJson, os.ModePerm)
+	return mazeString
 }
 
 // Implementing the fastest and most trivial algorithm I could find.
@@ -154,22 +207,18 @@ func getMazeData(id int) [FIELD_SIZE]int {
 				cell = cell & (^SOUTH_WALL)
 			}
 		}
-		err := ioutil.WriteFile(fmt.Sprintf("out/%03d/%03d-%03d.txt", id, id, i), []byte(render(bitfield)), os.ModePerm)
+		err := ioutil.WriteFile(fmt.Sprintf("out/%d/%d-%d.txt", id, id, i), []byte(render(bitfield)), os.ModePerm)
 		if err != nil {
 			log.Fatal(err.Error())
 		}
 		bitfield[i] = cell
 	}
 	finalOut := render(bitfield)
-	err := ioutil.WriteFile(fmt.Sprintf("out/%03d/%03d-final.txt", id, id), []byte(finalOut), os.ModePerm)
+	err := ioutil.WriteFile(fmt.Sprintf("out/%d/%d-final.txt", id, id), []byte(finalOut), os.ModePerm)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
-	err = ioutil.WriteFile(fmt.Sprintf("out/%03d/%03d-final.txt.sha1", id, id), []byte(fmt.Sprintf("%x\n", sha1.Sum([]byte(finalOut)))), os.ModePerm)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
 	return bitfield
 }
 
