@@ -2,7 +2,56 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+// BlockMazing
 
+// The genesis maze https://blockmazing.com/m/0/maze.txt
+// +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+// |   |   |   |   |               |                       |   |   |   |   |   |   |
+// +   +   +   +   +---+---+---+   +---+---+---+---+---+   +   +   +   +   +   +   +
+// |   |           |   |   |   |   |               |   |   |   |   |               |
+// +   +---+---+   +   +   +   +   +---+---+---+   +   +   +   +   +---+---+---+   +
+// |       |   |               |               |   |           |   |       |       |
+// +---+   +   +---+---+---+   +---+---+---+   +   +---+---+   +   +---+   +---+   +
+// |                                   |   |                   |       |           |
+// +---+---+---+---+---+---+---+---+   +   +---+---+---+---+   +---+   +---+---+   +
+// |   |       |   |   |       |   |   |           |       |   |       |   |       |
+// +   +---+   +   +   +---+   +   +   +---+---+   +---+   +   +---+   +   +---+   +
+// |                               |   |   |       |       |           |   |       |
+// +---+---+---+---+---+---+---+   +   +   +---+   +---+   +---+---+   +   +---+   +
+// |   |           |   |   |   |       |   |           |   |       |   |       |   |
+// +   +---+---+   +   +   +   +---+   +   +---+---+   +   +---+   +   +---+   +   +
+// |       |   |                   |   |   |       |   |           |   |   |       |
+// +---+   +   +---+---+---+---+   +   +   +---+   +   +---+---+   +   +   +---+   +
+// |   |               |   |   |       |       |   |   |   |   |       |   |       |
+// +   +---+---+---+   +   +   +---+   +---+   +   +   +   +   +---+   +   +---+   +
+// |   |   |   |   |           |   |   |                           |   |           |
+// +   +   +   +   +---+---+   +   +   +---+---+---+---+---+---+   +   +---+---+   +
+// |   |   |   |           |   |   |   |   |   |       |       |               |   |
+// +   +   +   +---+---+   +   +   +   +   +   +---+   +---+   +---+---+---+   +   +
+// |   |                   |           |   |   |       |           |   |       |   |
+// +   +---+---+---+---+   +---+---+   +   +   +---+   +---+---+   +   +---+   +   +
+// |       |   |   |                       |           |   |   |           |   |   |
+// +---+   +   +   +---+---+---+---+---+   +---+---+   +   +   +---+---+   +   +   +
+// |   |           |           |       |       |   |                   |   |       |
+// +   +---+---+   +---+---+   +---+   +---+   +   +---+---+---+---+   +   +---+   +
+// |   |   |                               |       |       |       |       |   |   |
+// +   +   +---+---+---+---+---+---+---+   +---+   +---+   +---+   +---+   +   +   +
+// |       |   |       |   |   |               |   |       |   |   |   |   |   |   |
+// +---+   +   +---+   +   +   +---+---+---+   +   +---+   +   +   +   +   +   +   +
+// |                   |           |           |                                   |
+// +---+---+---+---+   +---+---+   +---+---+   +---+---+---+---+---+---+---+---+   +
+// |                   |       |   |   |   |   |                   |           |   |
+// +---+---+---+---+   +---+   +   +   +   +   +---+---+---+---+   +---+---+   +   +
+// |   |   |           |   |               |   |           |       |   |           |
+// +   +   +---+---+   +   +---+---+---+   +   +---+---+   +---+   +   +---+---+   +
+// |                                                                               |
+// +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+
+// This is a basic project inspired by 0xd4e4078ca3495de5b1d4db434bebc5a986197782 (Autoglyphs) as well as Jamis Buck's Mazes for programmers. The goal is to have a unique maze represented on the blockchain.
+
+// https://pragprog.com/titles/jbmaze/mazes-for-programmers/
+// https://github.com/praetoriansentry/maze/
+// https://blockmazing.com
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
@@ -16,11 +65,12 @@ contract Maze is ERC721, ERC721Enumerable, Ownable {
 
     Counters.Counter private _tokenIdCounter;
 
-
     uint public constant MAZE_SIZE = 20;
     uint public constant MAX_TOKEN_COUNT = 256;
     uint constant FIELD_SIZE = MAZE_SIZE * MAZE_SIZE;
-    uint256 constant TOKEN_COST = 25000000000000000; 
+    uint256 constant TOKEN_COST = 25000000000000000;
+
+    // each maze will donate some money to EFF!
     address constant EFF_ADDRESS = 0x095f1fD53A56C01c76A2a56B7273995Ce915d8C4;
 
     uint constant PRINTED_MAZE_COLS = (MAZE_SIZE * 4 + 2);
@@ -38,7 +88,7 @@ contract Maze is ERC721, ERC721Enumerable, Ownable {
     bytes1 constant CHAR_PIPE = 0x7C;
     bytes1 constant CHAR_SPACE = 0x20;
 
-    constructor() ERC721("Maze", "MZE") {}
+    constructor() ERC721("BlockMazing", "MZE") {}
 
     function safeMint(address to) public onlyOwner payable {
         require(this.totalSupply() < MAX_TOKEN_COUNT, "The supply of mazes has been exhausted.");
@@ -196,6 +246,8 @@ contract Maze is ERC721, ERC721Enumerable, Ownable {
         return row * MAZE_SIZE + col;
     }
 
+    // copying the paramters from glibc for creating a sequence of pseudo-random numbers. The idea is that each tokenid will have it's own sequence and therefor have it's own maze.
+    // https://en.wikipedia.org/wiki/Linear_congruential_generator#Parameters_in_common_use
     function semiRandomData(uint seed) public pure returns (uint) {
         return ((seed * 1103515245) + 12345) % 2147483648;
     }
