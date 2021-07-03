@@ -24,8 +24,10 @@ m.safeMint("0x3E5e9111Ae8eB78Fe1CC3bb8915d5D461F3Ef9A9", {value: "25000000000000
 https://github.com/rkalis/truffle-plugin-verify
 
 #+BEGIN_SRC bash
+npx truffle migrate --network rinkeby --reset
+
 npx truffle run verify Maze --network rinkeby
-truffle run verify Maze --network mainnet
+npx truffle run verify Maze --network mainnet
 #+END_SRC
 
 

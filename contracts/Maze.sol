@@ -68,10 +68,10 @@ contract Maze is ERC721, ERC721Enumerable, Ownable {
     uint public constant MAZE_SIZE = 20;
     uint public constant MAX_TOKEN_COUNT = 256;
     uint constant FIELD_SIZE = MAZE_SIZE * MAZE_SIZE;
-    uint256 constant TOKEN_COST = 25000000000000000;
+    uint256 public constant TOKEN_COST = 25000000000000000;
 
     // each maze will donate some money to EFF!
-    address constant EFF_ADDRESS = 0x095f1fD53A56C01c76A2a56B7273995Ce915d8C4;
+    address public constant EFF_ADDRESS = 0x095f1fD53A56C01c76A2a56B7273995Ce915d8C4;
 
     uint constant PRINTED_MAZE_COLS = (MAZE_SIZE * 4 + 2);
     uint constant PRINTED_MAZE_ROWS = (2 * MAZE_SIZE + 1);
@@ -90,7 +90,7 @@ contract Maze is ERC721, ERC721Enumerable, Ownable {
 
     constructor() ERC721("BlockMazing", "MZE") {}
 
-    function safeMint(address to) public onlyOwner payable {
+    function safeMint(address to) public payable {
         require(this.totalSupply() < MAX_TOKEN_COUNT, "The supply of mazes has been exhausted.");
         require(address(msg.sender).balance > TOKEN_COST, "Not enough ETH!");
         require(msg.value >= TOKEN_COST, "Value below price");
