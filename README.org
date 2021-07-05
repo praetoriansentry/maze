@@ -27,6 +27,9 @@ https://github.com/rkalis/truffle-plugin-verify
 npx truffle migrate --network rinkeby --reset
 
 npx truffle run verify Maze --network rinkeby
+
+npx truffle migrate --network mainnet --reset
+
 npx truffle run verify Maze --network mainnet
 #+END_SRC
 
@@ -53,11 +56,12 @@ while read -u 3 line; do
     convert mask-crop-0.jpg *-final.txt-alpha.png -gravity center -size 596x620 -compose over -composite maze-color.png
     mkdir final
     mv maze-color.png final/maze-color.png
+    cp final/maze-color.png final/maze.png
     mv animated.gif final/maze.gif
     mv *.json final/
     mv *.sha1 final/maze.sha1
     cp *-final.txt.png final/
-    mv *-final.txt.png final/maze.png
+    mv *-final.txt.png final/maze-plain.png
     mv *-final.txt final/maze.txt
 
     find . -maxdepth 1 -type f | xargs rm

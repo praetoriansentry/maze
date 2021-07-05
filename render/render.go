@@ -29,6 +29,8 @@ const (
 	CHAR_NEWLINE = 0x0A
 	CHAR_PIPE    = 0x7C
 	CHAR_SPACE   = 0x20
+
+	cubeSize = "1.0"
 )
 
 type (
@@ -51,6 +53,55 @@ func main() {
 	for i := 0; i < 256; i = i + 1 {
 		draw(i)
 	}
+}
+func render3D(bitfield [FIELD_SIZE]int) string {
+	maze3dSize := 41 // 20 * 2 + 1
+	output := ""
+	for i := 0; i < maze3dSize; i += 1 {
+		for j := 0; j < maze3dSize; j += 1 {
+			// Always print the base layer. For all blocks, I want to have a floor level
+			output += fmt.Sprintf("translate([%d, %d, 0]) {color([0,0,0]) cube(%s);};\n", i, j, cubeSize)
+
+			if i == 0 || i+1 == maze3dSize || j == 0 || j+1 == maze3dSize {
+				output += renderBlock(i, j)
+				continue
+			}
+
+			if i%2 == 0 || j%2 == 0 {
+				row := (i - 1) / 2
+				col := (j - 1) / 2
+				var cell int
+				cellIndex := rowColToBitIndex(row, col)
+				if cellIndex < FIELD_SIZE && cellIndex >= 0 {
+					cell = bitfield[cellIndex]
+				} else {
+					cell = 31
+				}
+
+				// south
+				if i%2 == 0 && (cell&SOUTH_WALL) == SOUTH_WALL {
+					output += renderBlock(i, j)
+					continue
+				}
+
+				// east
+				if j%2 == 0 && (cell&EAST_WALL) == EAST_WALL {
+					output += renderBlock(i, j)
+					continue
+				}
+			}
+		}
+	}
+	return output
+}
+func renderBlock(i, j int) string {
+	output := ""
+	output += fmt.Sprintf("translate([%d, %d, 1]) {cube(%s);};\n", i, j, cubeSize)
+	output += fmt.Sprintf("translate([%d, %d, 2]) {cube(%s);};\n", i, j, cubeSize)
+	output += fmt.Sprintf("translate([%d, %d, 3]) {cube(%s);};\n", i, j, cubeSize)
+	output += fmt.Sprintf("translate([%d, %d, 4]) {cube(%s);};\n", i, j, cubeSize)
+	output += fmt.Sprintf("translate([%d, %d, 5]) {cube(%s);};\n", i, j, cubeSize)
+	return output
 }
 
 func render(bitfield [FIELD_SIZE]int) string {
@@ -142,9 +193,15 @@ func draw(id int) string {
 	copy(fmt.Sprintf("masks/%d.jpg", id%30), fmt.Sprintf("out/%d/mask.jpg", id))
 	var bitfield [FIELD_SIZE]int = getMazeData(id)
 	mazeString := render(bitfield)
+	mazeString3d := render3D(bitfield)
 	mazeSha := fmt.Sprintf("%x\n", sha1.Sum([]byte(mazeString)))
 
 	err := ioutil.WriteFile(fmt.Sprintf("out/%d/%d-final.txt.sha1", id, id), []byte(mazeSha), os.ModePerm)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	err = ioutil.WriteFile(fmt.Sprintf("out/%d/maze.scad", id), []byte(mazeString3d), os.ModePerm)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -207,7 +264,7 @@ func getMazeData(id int) [FIELD_SIZE]int {
 				cell = cell & (^SOUTH_WALL)
 			}
 		}
-		err := ioutil.WriteFile(fmt.Sprintf("out/%d/%d-%d.txt", id, id, i), []byte(render(bitfield)), os.ModePerm)
+		err := ioutil.WriteFile(fmt.Sprintf("out/%d/%d-%03d.txt", id, id, i), []byte(render(bitfield)), os.ModePerm)
 		if err != nil {
 			log.Fatal(err.Error())
 		}
