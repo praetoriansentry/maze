@@ -35,17 +35,20 @@ const (
 
 type (
 	Prop struct {
-		TraitType string `json:"trait_type"`
-		Value     string `json:"value"`
+		TraitType   string      `json:"trait_type"`
+		DisplayType string      `json:"display_type"`
+		Value       interface{} `json:"value"`
 	}
 
 	ERC721 struct {
-		Name        string `json:"name"`
-		Description string `json:"description"`
-		Image       string `json:"image"`
-		MazeString  string `json:"maze_string"`
-		MazeSHA     string `json:"maze_sha"`
-		Attributes  []Prop `json:"attributes"`
+		Name         string `json:"name"`
+		Description  string `json:"description"`
+		Image        string `json:"image"`
+		AnimationUrl string `json:"animation_url"`
+		ExternalUrl  string `json:"external_url"`
+		MazeString   string `json:"maze_string"`
+		MazeSHA      string `json:"maze_sha"`
+		Attributes   []Prop `json:"attributes"`
 	}
 )
 
@@ -224,10 +227,12 @@ func draw(id int) string {
 	mzData.Name = fmt.Sprintf("BlockMazing #%03d", id)
 	mzData.Description = fmt.Sprintf("BlockMazing #%03d", id)
 	mzData.Image = fmt.Sprintf("https://blockmazing.com/m/%d/maze.png", id)
+	mzData.AnimationUrl = fmt.Sprintf("https://blockmazing.com/m/%d/maze.mp4", id)
+	mzData.ExternalUrl = fmt.Sprintf("https://blockmazing.com/m/%d/", id)
 	mzData.MazeString = mazeString
 	mzData.MazeSHA = mazeSha
-	attrs = append(attrs, Prop{TraitType: "South turns", Value: fmt.Sprintf("%d", south)})
-	attrs = append(attrs, Prop{TraitType: "East turns", Value: fmt.Sprintf("%d", east)})
+	attrs = append(attrs, Prop{TraitType: "South turns", Value: south, DisplayType: "number"})
+	attrs = append(attrs, Prop{TraitType: "East turns", Value: east, DisplayType: "number"})
 	mzData.Attributes = attrs
 	mzJson, err := json.Marshal(mzData)
 	if err != nil {
