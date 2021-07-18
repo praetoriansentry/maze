@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"crypto/sha1"
 	"encoding/json"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"text/template"
 )
 
 const (
@@ -42,6 +44,8 @@ type (
 
 	ERC721 struct {
 		Name         string `json:"name"`
+		Num          string `json:"num"`
+		ID           string `json:"id"`
 		Description  string `json:"description"`
 		Image        string `json:"image"`
 		AnimationUrl string `json:"animation_url"`
@@ -53,8 +57,16 @@ type (
 )
 
 func main() {
+	templateFile, err := ioutil.ReadFile("index.html")
+	if err != nil {
+		log.Fatal(err)
+	}
+	tmpl, err := template.New("mze").Parse(string(templateFile))
+	if err != nil {
+		log.Fatal(err)
+	}
 	for i := 0; i < 256; i = i + 1 {
-		draw(i)
+		draw(i, tmpl)
 	}
 }
 func render3D(bitfield [FIELD_SIZE]int) string {
@@ -191,7 +203,7 @@ func render(bitfield [FIELD_SIZE]int) string {
 }
 
 // Take a token id and draw the maze that's unique to that token.
-func draw(id int) string {
+func draw(id int, tmpl *template.Template) string {
 	os.Mkdir(fmt.Sprintf("out/%d/", id), os.ModePerm)
 	copy(fmt.Sprintf("masks/%d.jpg", id%30), fmt.Sprintf("out/%d/mask.jpg", id))
 	var bitfield [FIELD_SIZE]int = getMazeData(id)
@@ -224,6 +236,8 @@ func draw(id int) string {
 	mzData := new(ERC721)
 	attrs := make([]Prop, 0)
 
+	mzData.Num = fmt.Sprintf("%03d", id)
+	mzData.ID = fmt.Sprintf("%d", id)
 	mzData.Name = fmt.Sprintf("BlockMazing #%03d", id)
 	mzData.Description = fmt.Sprintf("BlockMazing #%03d", id)
 	mzData.Image = fmt.Sprintf("https://blockmazing.com/m/%d/maze.png", id)
@@ -238,7 +252,21 @@ func draw(id int) string {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	ioutil.WriteFile(fmt.Sprintf("out/%d/%d.json", id, id), mzJson, os.ModePerm)
+	err = ioutil.WriteFile(fmt.Sprintf("out/%d/%d.json", id, id), mzJson, os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var buf bytes.Buffer
+	err = tmpl.Execute(&buf, mzData)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = ioutil.WriteFile(fmt.Sprintf("out/%d/index.html", id), buf.Bytes(), os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
+	}
 	return mazeString
 }
 

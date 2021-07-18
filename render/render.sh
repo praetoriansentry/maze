@@ -1,46 +1,3 @@
-https://docs.openzeppelin.com/learn/setting-up-a-node-project
-
-#+begin_src bash
-npm install @openzeppelin/contracts
-npm install --save-dev truffle
-npx truffle init
-
-npm install --save-dev ganache-cli
-
-npx ganache-cli --deterministic
-
-npx truffle compile
-npx truffle migrate --network development
-npx truffle console --network development
-
-m = await Maze.deployed()
-await web3.eth.getAccounts()
-web3.eth.defaultAccount = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
-m.safeMint("0x3E5e9111Ae8eB78Fe1CC3bb8915d5D461F3Ef9A9", {value: "25000000000000000"})
-
-
-#+end_src
-
-https://github.com/rkalis/truffle-plugin-verify
-
-#+BEGIN_SRC bash
-npx truffle migrate --network rinkeby --reset
-
-npx truffle run verify Maze --network rinkeby
-
-npx truffle migrate --network mainnet --reset
-
-npx truffle run verify Maze --network mainnet
-#+END_SRC
-
-
-
-
-
-
-
-
-#+BEGIN_SRC bash
 # Create the full tree
 go run render.go
 
@@ -69,7 +26,7 @@ while read -u 3 line; do
     mkdir final
     mv *-final.txt-color.png final/maze-color.png
     cp final/maze-color.png final/maze.png
-#    mv animated.gif final/maze.gif
+#   mv animated.gif final/maze.gif
     mv *.json final/
     mv *.sha1 final/maze.sha1
     cp *-final.txt.png final/
@@ -82,17 +39,10 @@ while read -u 3 line; do
     find . -maxdepth 1 -type f | xargs rm
     mv final/* .
     openscad -o maze-3d.png maze.scad --camera=19.34,24.2,3.47,25.2,0,135.1,147.57 --projection=ortho --imgsize=3840,2160 --colorscheme=Starnight
-    openscad -o maze.stl maze.scad
+#   openscad -o maze.stl maze.scad
 
     rm -rf final/
     popd
 done 3<<< $(find out -mindepth 1 -maxdepth 1 -type d)
 
-
-
-#+END_SRC
-
-
-Test: https://rinkeby.etherscan.io/address/0x3c5Cc823f2F128C4EC58d233c008023CAceebF7a
-Main: https://etherscan.io/address/0xaf5385a615ffd60a8191bfd9aec441e442fcd3cf
-
+find out -mindepth 1 -type d | awk '{print "openscad -o " $1 "/maze.stl " $1 "/maze.scad"}' | parallel
